@@ -1,0 +1,122 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>迷宫打印</title>
+    <script src="js/maze.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+
+        canvas {
+            margin: 10px;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+
+        .title {
+            float: left;
+            padding: 15px;
+        }
+
+        @media screen {
+            .container {
+                margin: 0 auto;
+                width: 794px;
+            }
+
+            .print-footer {
+                display: none;
+            }
+
+            .print-container {
+                border: 1px dashed #000;
+                height: 1123px;
+                padding: 40px;
+            }
+
+            .no-print {
+                width: 763px;
+            }
+        }
+
+        @media print {
+            .container {
+                margin: 0;
+                width: 100%;
+            }
+
+            .print-footer {
+                position: fixed;
+                bottom: 0;
+                width: 90%;
+            }
+
+            .print-container {
+                width: 100%;
+                height: 100%;
+                border: none;
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="no-print" style="text-align: right;">
+        <h2 class="title">迷宫打印</h2>
+        <label>列数</label><input type="number" value="30" id="col">
+        <label>行数</label><input type="number" value="30" id="row">
+        <button type="button" class="button" onclick="create()">生成</button>
+        <button type="button" class="button" style="background-color: #008CBA;" onclick="window.print()">打印</button>
+    </div>
+    <div class="print-container"></div>
+    <div class="print-footer">
+        <div style="float: left">迷宫</div>
+        <div style="float: right">排版:wangmianzhe</div>
+    </div>
+</div>
+<script>
+    var maxCount = 6;//迷宫个数
+    var width = height = 320;//迷宫尺寸（像素）
+    function create(){
+        var col = document.getElementById('col').value; //迷宫列数
+        var row = document.getElementById('row').value; //迷宫行数
+        if(col>55 || row>55){
+            alert("列数和行数不能超过55");
+            return;
+        }
+        document.querySelector('.print-container').innerHTML = "";
+        for (var i = 0; i < maxCount; i++) {
+            var canvas = document.createElement('canvas');
+            canvas.setAttribute('width', width);
+            canvas.setAttribute('height', height);
+            document.querySelector('.print-container').appendChild(canvas);
+            new Maze(canvas, col, row);
+        }
+    }
+    create();
+
+
+
+</script>
+</body>
+</html>
