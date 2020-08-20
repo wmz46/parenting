@@ -1,0 +1,147 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>数独(4*4)打印</title>
+    <script src="js/sudoku2.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .sudoku-wrap {
+            display: inline-block;
+        }
+
+        .sudoku {
+            width: 209px;
+            height: 209px;
+            list-style: none;
+            margin: 10px;
+            border-top:1px solid #000;
+            border-left:1px solid #000;
+        }
+
+        .sudoku li {
+            width: 52px;
+            height: 52px;
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+            float: left;
+            text-align: center;
+            line-height: 52px;
+            font-size: 40px;
+        }
+        .sudoku li:nth-child(2n+1){
+            border-left:1px solid  #000;
+        }
+        .sudoku li:nth-child(4n+1){
+            border-left:none;
+        }
+        .sudoku li:nth-child(n+9):nth-child(-n+12){
+            border-top:1px solid #000;
+        }
+        .title {
+            float: left;
+            padding: 15px;
+        }
+
+
+        @media screen {
+            .container {
+                margin: 0 auto;
+                width: 794px;
+            }
+
+            .print-footer {
+                display: none;
+            }
+
+            .print-container {
+                border: 1px dashed #000;
+                height: 1123px;
+                padding: 40px;
+            }
+
+            .no-print {
+                width: 763px;
+            }
+        }
+
+        @media print {
+            .container {
+                margin: 0;
+                width: 100%;
+            }
+
+            .print-footer {
+                position: fixed;
+                bottom: 0;
+                width: 90%;
+            }
+
+            .print-container {
+                width: 100%;
+                height: 100%;
+                border: none;
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="no-print" style="text-align: right;">
+        <h2 class="title">数独(4*4)打印</h2>
+        <span style="margin-right: 30px">
+            <label><input type="radio" name="difficulty" value="easy" onclick="difficulty = 1" checked>简单</label>
+            <label><input type="radio" name="difficulty" value="hard" onclick="difficulty =2">中等</label>
+            <label><input type="radio" name="difficulty" value="disgust" onclick="difficulty=3">困难</label>
+        </span>
+        <button type="button" class="button" onclick="create()">生成</button>
+        <button type="button" class="button" style="background-color: #008CBA;" onclick="window.print()">打印</button>
+    </div>
+    <div class="print-container"></div>
+    <div class="print-footer">
+        <div style="float: left" id="title">数独(4*4)</div>
+        <div style="float: right">排版:wangmianzhe</div>
+    </div>
+</div>
+<script>
+    var maxCount = 12;
+    var difficulty = 1;
+    var difficultyText = {1:'简单',2:'中等',3:'困难'};
+
+    function create() {
+        document.querySelector(".print-container").innerHTML = "";
+        for (var i = 0; i < maxCount; i++) {
+            var sudoku = document.createElement("div");
+            sudoku.setAttribute("class", 'sudoku-wrap')
+            new Sudoku(sudoku, difficulty);
+            document.querySelector(".print-container").appendChild(sudoku);
+        }
+        document.getElementById('title').innerText = '数独(4*4)（'+difficultyText[difficulty]+'）';
+    }
+
+    create();
+</script>
+</body>
+</html>
