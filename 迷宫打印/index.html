@@ -13,15 +13,12 @@
         table {
             border-left: 1px solid #000;
             margin: 10px;
-            width: 45%;
             display: inline-block;
         }
 
         td {
             border-right: 1px solid #000;
             border-bottom: 1px solid #000;
-            width: 10px;
-            height: 10px;
         }
 
         .button {
@@ -93,13 +90,17 @@
 <div class="container" id="app">
     <div class="no-print" style="text-align: right;">
         <h2 class="title">迷宫打印</h2>
-        <label>列数</label><input type="number" v-model="h">
-        <label>行数</label><input type="number" v-model="w">
+        <div style="display: inline-block;">
+            <label>个数</label><input type="number" v-model="count" placeholder="迷宫个数">
+            <label>尺寸</label><input type="number" v-model="width" placeholder="迷宫边长（像素）"><br>
+            <label>列数</label><input type="number" v-model="col" placeholder="迷宫列数">
+            <label>行数</label><input type="number" v-model="row" placeholder="迷宫行数">
+        </div>
         <button type="button" class="button" @click="rebuild()">生成</button>
         <button type="button" class="button" style="background-color: #008CBA;" onclick="window.print()">打印</button>
     </div>
     <div class="print-container">
-        <maze v-for="i in parseInt(count)" v-key="i" :w="w" :h="h" :id="'t'+i"></maze>
+        <maze v-for="i in parseInt(count)" :width="width" v-key="i" :col="col" :row="row" :id="'t'+i"></maze>
     </div>
     <div class="print-footer">
         <div style="float: left">迷宫</div>
@@ -109,11 +110,12 @@
 
 <script>
     Vue.component('maze', {
-        props: ['w', 'h','id'],
+        props: ['col', 'row', 'id', 'width'],
         data: function () {
             return {
-                w: this.w,
-                h: this.h,
+                width: this.width,
+                col: this.col,
+                row: this.row,
             }
         },
         mounted: function () {
@@ -123,9 +125,9 @@
             F: function () {
                 var Arr = [];
                 var count = 0;
-                for (var i = 0; i < this.w; i++) {
+                for (var i = 0; i < this.col; i++) {
                     var col = [];
-                    for (var j = 0; j < this.h; j++) {
+                    for (var j = 0; j < this.row; j++) {
                         col.push({x: i, y: j, z: 15, k: count});
                         count++;
                     }
@@ -135,7 +137,7 @@
                 var linkSet = new Set([]);
                 link.push(Arr[0][0]);
                 linkSet.add(0);
-                while (link.length < this.w * this.h) {
+                while (link.length < this.col * this.row) {
                     var wall = [];
                     for (var obj_index in link) {
                         var obj = link[obj_index];
@@ -152,8 +154,8 @@
                     link.push(thewall.B);
                     linkSet.add(thewall.B.k);
                 }
-                for (var i = 0; i < this.w; i++) {
-                    for (var j = 0; j < this.h; j++) {
+                for (var i = 0; i < this.col; i++) {
+                    for (var j = 0; j < this.row; j++) {
                         var el = document.getElementById(this.id + i + "_" + j);
                         if ((Arr[i][j].z & 1) != 1 && i > 0) {
                             el.style.borderLeftStyle = "hidden";
@@ -161,23 +163,23 @@
                         if ((Arr[i][j].z & 2) != 2 && j > 0) {
                             el.style.borderTopStyle = "hidden";
                         }
-                        if ((Arr[i][j].z & 4) != 4 && i < this.w - 1) {
+                        if ((Arr[i][j].z & 4) != 4 && i < this.col - 1) {
                             el.style.borderRightStyle = "hidden";
                         }
-                        if ((Arr[i][j].z & 8) != 8 && j < this.h - 1) {
+                        if ((Arr[i][j].z & 8) != 8 && j < this.row - 1) {
                             el.style.borderBottomStyle = "hidden";
                         }
                     }
                 }
-                for (var i = 1; i < this.w; i++) {
+                for (var i = 1; i < this.col; i++) {
                     var el = document.getElementById(this.id + i + "_" + 0);
                     el.style.borderTop = "1px solid #000";
                 }
-                document.getElementById(this.id + (this.w - 1) + "_" + (this.h - 1)).style.borderBottomStyle =
+                document.getElementById(this.id + (this.col - 1) + "_" + (this.row - 1)).style.borderBottomStyle =
                     "hidden";
             },
             addWall: function (obj, xx, yy, Arr, linkSet, wall, a, b) {
-                if (!(xx >= 0 && yy >= 0 && xx < this.w && yy < this.h)) {
+                if (!(xx >= 0 && yy >= 0 && xx < this.col && yy < this.row)) {
                     return;
                 }
                 var target = Arr[xx][yy];
@@ -186,9 +188,9 @@
                 }
             }
         },
-        template: ' <table id="tb" cellpadding="0" cellspacing="0">\n' +
-            '            <tr v-for="y in parseInt(h)" :key="y">\n' +
-            '                <td v-for="x in parseInt(w)" :key="x" :id="id+ (x-1) + \'_\' + (y-1) "></td>\n' +
+        template: ' <table id="tb" cellpadding="0" cellspacing="0" :style="\'width:\'+width">\n' +
+            '            <tr v-for="y in parseInt(row)" :key="y">\n' +
+            '                <td :style="\'width:\'+width/col+\'px;height:\'+width/col+\'px\'" v-for="x in parseInt(col)" :key="x" :id="id+ (x-1) + \'_\' + (y-1) "></td>\n' +
             '            </tr>\n' +
             '        </table>'
     });
@@ -196,15 +198,16 @@
         el: '#app',
         data: {
             count: 6,//迷宫个数
-            w: 30,
-            h: 30,
+            col: 30,
+            row: 30,
+            width: 310,
         },
-        methods:{
-            rebuild:function(){
+        methods: {
+            rebuild: function () {
                 var count = this.count
                 var that = this;
                 this.count = 0;
-                setTimeout(function(){
+                setTimeout(function () {
                     that.count = count;
                 })
             }
