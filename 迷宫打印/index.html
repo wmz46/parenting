@@ -1,8 +1,8 @@
 <html>
 <head>
+    <script src="js/vue.min.js"></script>
+
     <meta charset="UTF-8">
-    <title>迷宫打印</title>
-    <script src="js/maze.js"></script>
     <style>
         * {
             padding: 0;
@@ -10,9 +10,18 @@
             box-sizing: border-box;
         }
 
-
-        canvas {
+        table {
+            border-left: 1px solid #000;
             margin: 10px;
+            width: 45%;
+            display: inline-block;
+        }
+
+        td {
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+            width: 10px;
+            height: 10px;
         }
 
         .button {
@@ -80,41 +89,128 @@
     </style>
 </head>
 <body>
-<div class="container">
+
+<div class="container" id="app">
     <div class="no-print" style="text-align: right;">
         <h2 class="title">迷宫打印</h2>
-        <label>列数</label><input type="number" value="30" id="col">
-        <label>行数</label><input type="number" value="30" id="row">
-        <button type="button" class="button" onclick="create()">生成</button>
+        <label>列数</label><input type="number" v-model="h">
+        <label>行数</label><input type="number" v-model="w">
+        <button type="button" class="button" @click="rebuild()">生成</button>
         <button type="button" class="button" style="background-color: #008CBA;" onclick="window.print()">打印</button>
     </div>
-    <div class="print-container"></div>
+    <div class="print-container">
+        <maze v-for="i in parseInt(count)" v-key="i" :w="w" :h="h" :id="'t'+i"></maze>
+    </div>
     <div class="print-footer">
         <div style="float: left">迷宫</div>
         <div style="float: right">排版:wangmianzhe</div>
     </div>
 </div>
-<script>
-    var maxCount = 6;//迷宫个数
-    var width = height = 320;//迷宫尺寸（像素）
-    function create(){
-        var col = document.getElementById('col').value; //迷宫列数
-        var row = document.getElementById('row').value; //迷宫行数
-        if(col>55 || row>55){
-            alert("列数和行数不能超过55");
-            return;
-        }
-        document.querySelector('.print-container').innerHTML = "";
-        for (var i = 0; i < maxCount; i++) {
-            var canvas = document.createElement('canvas');
-            canvas.setAttribute('width', width);
-            canvas.setAttribute('height', height);
-            document.querySelector('.print-container').appendChild(canvas);
-            new Maze(canvas, col, row);
-        }
-    }
-    create();
 
+<script>
+    Vue.component('maze', {
+        props: ['w', 'h','id'],
+        data: function () {
+            return {
+                w: this.w,
+                h: this.h,
+            }
+        },
+        mounted: function () {
+            this.F();
+        },
+        methods: {
+            F: function () {
+                var Arr = [];
+                var count = 0;
+                for (var i = 0; i < this.w; i++) {
+                    var col = [];
+                    for (var j = 0; j < this.h; j++) {
+                        col.push({x: i, y: j, z: 15, k: count});
+                        count++;
+                    }
+                    Arr.push(col);
+                }
+                var link = [];
+                var linkSet = new Set([]);
+                link.push(Arr[0][0]);
+                linkSet.add(0);
+                while (link.length < this.w * this.h) {
+                    var wall = [];
+                    for (var obj_index in link) {
+                        var obj = link[obj_index];
+                        this.addWall(obj, obj.x, obj.y - 1, Arr, linkSet, wall, 2, 8);
+                        this.addWall(obj, obj.x, obj.y + 1, Arr, linkSet, wall, 8, 2);
+                        this.addWall(obj, obj.x - 1, obj.y, Arr, linkSet, wall, 1, 4);
+                        this.addWall(obj, obj.x + 1, obj.y, Arr, linkSet, wall, 4, 1);
+                    }
+
+                    var wall_index = Math.floor(Math.random() * wall.length);
+                    var thewall = wall[wall_index];
+                    thewall.B.z -= thewall.Bb;
+                    thewall.A.z -= thewall.Aa;
+                    link.push(thewall.B);
+                    linkSet.add(thewall.B.k);
+                }
+                for (var i = 0; i < this.w; i++) {
+                    for (var j = 0; j < this.h; j++) {
+                        var el = document.getElementById(this.id + i + "_" + j);
+                        if ((Arr[i][j].z & 1) != 1 && i > 0) {
+                            el.style.borderLeftStyle = "hidden";
+                        }
+                        if ((Arr[i][j].z & 2) != 2 && j > 0) {
+                            el.style.borderTopStyle = "hidden";
+                        }
+                        if ((Arr[i][j].z & 4) != 4 && i < this.w - 1) {
+                            el.style.borderRightStyle = "hidden";
+                        }
+                        if ((Arr[i][j].z & 8) != 8 && j < this.h - 1) {
+                            el.style.borderBottomStyle = "hidden";
+                        }
+                    }
+                }
+                for (var i = 1; i < this.w; i++) {
+                    var el = document.getElementById(this.id + i + "_" + 0);
+                    el.style.borderTop = "1px solid #000";
+                }
+                document.getElementById(this.id + (this.w - 1) + "_" + (this.h - 1)).style.borderBottomStyle =
+                    "hidden";
+            },
+            addWall: function (obj, xx, yy, Arr, linkSet, wall, a, b) {
+                if (!(xx >= 0 && yy >= 0 && xx < this.w && yy < this.h)) {
+                    return;
+                }
+                var target = Arr[xx][yy];
+                if (target.z == 15 && !linkSet.has(target.k)) {
+                    wall.push({A: obj, B: target, Aa: a, Bb: b});
+                }
+            }
+        },
+        template: ' <table id="tb" cellpadding="0" cellspacing="0">\n' +
+            '            <tr v-for="y in parseInt(h)" :key="y">\n' +
+            '                <td v-for="x in parseInt(w)" :key="x" :id="id+ (x-1) + \'_\' + (y-1) "></td>\n' +
+            '            </tr>\n' +
+            '        </table>'
+    });
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            count: 6,//迷宫个数
+            w: 30,
+            h: 30,
+        },
+        methods:{
+            rebuild:function(){
+                var count = this.count
+                var that = this;
+                this.count = 0;
+                setTimeout(function(){
+                    that.count = count;
+                })
+            }
+        }
+
+    });
 
 
 </script>
